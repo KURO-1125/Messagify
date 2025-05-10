@@ -18,15 +18,14 @@ const App = () => {
   const {authUser,checkAuth, isCheckingAuth, onlineUsers} = useAuthStore()
   const { theme , setTheme} = useThemeStore()
 
+  console.log({onlineUsers})
+
   useEffect(()=>{
     checkAuth()
   },[checkAuth])
 
   console.log({authUser})
 
-  useEffect(() => {
-    setTheme("synthwave");
-  }, []);
 
   if(isCheckingAuth && !authUser) return (
     <div className='flex items-center justify-center h-screen'>
@@ -39,7 +38,7 @@ const App = () => {
     <div data-theme={theme}> 
       <Navbar/>
       <Routes>
-        <Route path='/' element={authUser ? <HomePage/> : <Navigate to =  '/login'/>} />
+        <Route path='/' element={authUser ? <HomePage/> : <Navigate to ='/login'/>} />
         <Route path='/signup' element={!authUser ? <SignupPage/> : <Navigate to = '/'/>} />
         <Route path='/login' element={!authUser ? <LoginPage/> : <Navigate to  = '/'/> } />
         <Route path='/settings' element={<SettingsPage/>}/>
