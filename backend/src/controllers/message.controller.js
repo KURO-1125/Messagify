@@ -17,12 +17,12 @@ export const getUsersForSideBar = async (req,res)=>{
 
 export const getMessages = async (req,res)=>{
     try {
-        const {id:userToChatId} = req.params
+        const {userId} = req.params
         const myId = req.user._id;
 
         const messages = await Message.find({
             $or:[
-                {senderId:myId,receiverId:userToChatId},{senderId:userToChatId,receiverId:myId}
+                {senderId:myId,receiverId:userId},{senderId:userId,receiverId:myId}
             ]
         })
 
@@ -36,7 +36,7 @@ export const getMessages = async (req,res)=>{
 export const sendMessage = async (req,res)=>{
     try {
         const {text,image} = req.body;
-        const {id:receiverId} = req.params;
+        const {userId} = req.params;
         const senderId = req.user._id;
 
         let imageURL;
@@ -47,7 +47,7 @@ export const sendMessage = async (req,res)=>{
 
         const newMessage = new Message({
             senderId,
-            receiverId,
+            receiverId: userId,
             text,
             image:imageURL
         })
@@ -55,7 +55,7 @@ export const sendMessage = async (req,res)=>{
         await newMessage.save();
 
         //TODO - socket.io
-        const receiverSocketId = getReceiverSocketId(receiverId);
+        const receiverSocketId = getReceiverSocketId(userId);
         if(receiverSocketId){
             io.to(receiverSocketId).emit("newMessage",newMessage);
         }
