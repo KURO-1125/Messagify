@@ -9,7 +9,8 @@ function runCommand(command, cwd) {
     console.log(`Running command: ${command} in ${cwd}`);
     execSync(command, { 
       stdio: 'inherit',
-      cwd: cwd
+      cwd: cwd,
+      env: { ...process.env, NODE_ENV: 'production' }
     });
     return true;
   } catch (error) {
@@ -23,18 +24,18 @@ try {
   // Ensure node_modules exists
   if (!fs.existsSync('node_modules')) {
     console.log('Installing root dependencies...');
-    runCommand('npm install', process.cwd());
+    runCommand('npm install --production=false', process.cwd());
   }
 
   // Install frontend dependencies
   console.log('Installing frontend dependencies...');
-  if (!runCommand('npm install', path.join(process.cwd(), 'frontend'))) {
+  if (!runCommand('npm install --production=false', path.join(process.cwd(), 'frontend'))) {
     throw new Error('Failed to install frontend dependencies');
   }
 
   // Install backend dependencies
   console.log('Installing backend dependencies...');
-  if (!runCommand('npm install', path.join(process.cwd(), 'backend'))) {
+  if (!runCommand('npm install --production=false', path.join(process.cwd(), 'backend'))) {
     throw new Error('Failed to install backend dependencies');
   }
 
