@@ -4,6 +4,11 @@ A lightweight, real-time messaging platform built with React 19, Node.js, and So
 
 https://github.com/user-attachments/assets/4a07d122-ee96-40c7-9751-37d0431e6ab0
 
+### Live Demo
+
+- **Frontend:** [https://messagify-tau.vercel.app](https://messagify-tau.vercel.app/)
+- **Backend API:** [https://messagify-towg.onrender.com](https://messagify-towg.onrender.com)
+
 ---
 
 ## Features
