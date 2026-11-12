@@ -9,6 +9,7 @@ try {
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -75,11 +76,20 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/messages', messageLimiter, messageRoutes);
 app.use('/api/groups', messageLimiter, groupRoutes);
 
-if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: "ok", message: "Messagify API is healthy", timestamp: new Date().toISOString() });
+});
 
-    app.get("*", (req, res) => {
-        res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+const frontendDist = path.join(__dirname, "../frontend/dist");
+if (process.env.NODE_ENV === "production" && fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+
+    app.get('{*splat}', (req, res) => {
+        res.sendFile(path.join(frontendDist, "index.html"));
+    });
+} else {
+    app.get('/', (req, res) => {
+        res.status(200).json({ status: "ok", message: "Messagify API is running" });
     });
 }
 
