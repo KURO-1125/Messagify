@@ -5,8 +5,8 @@ import ChatContainer from '../components/ChatContainer';
 import NoChatSelected from '../components/NoChatSelected';
 
 const HomePage = () => {
-
-  const { selectedUser } = useChatStore();
+  const { selectedUser, selectedGroup } = useChatStore();
+  const hasActiveChat = Boolean(selectedUser || selectedGroup);
 
   return (
     <div className="h-screen bg-base-200">
@@ -15,7 +15,7 @@ const HomePage = () => {
           <div className="flex h-full rounded-lg overflow-hidden">
             <Sidebar />
 
-            {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+            {!hasActiveChat ? <NoChatSelected /> : <ChatContainer />}
           </div>
         </div>
       </div>

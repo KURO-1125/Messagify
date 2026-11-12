@@ -20,9 +20,16 @@ const App = () => {
 
   console.log({onlineUsers})
 
-  useEffect(()=>{
-    checkAuth()
-  },[checkAuth])
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Synchronize DaisyUI theme on the root <html> document element
+  useEffect(() => {
+    if (theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+  }, [theme]);
 
   console.log({authUser})
 

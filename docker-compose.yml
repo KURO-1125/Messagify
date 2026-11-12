@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  # MongoDB local database
+  mongo:
+    image: mongo:latest
+    container_name: chatapp-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - chatapp-network
+
+  # Node.js + Express Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chatapp-backend
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGODB_URI=mongodb://mongo:27017/chat_app
+      - NODE_ENV=production
+      - CLIENT_URL=http://localhost
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mongo
+    networks:
+      - chatapp-network
+
+  # React + Vite Frontend (Served with Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chatapp-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - chatapp-network
+
+volumes:
+  mongo-data:
+
+networks:
+  chatapp-network:
+    driver: bridge
+

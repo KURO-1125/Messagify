@@ -104,7 +104,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* {right side} */}
+
 
       <AuthImagePattern
         title="Join Our Community"

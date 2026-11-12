@@ -3,112 +3,122 @@ import { axiosInstance } from '../lib/axios'
 import toast from 'react-hot-toast';
 import { io } from 'socket.io-client'
 
-const BASE_URL = import.meta.env.MODE === "development" 
-    ? "http://localhost:5001" 
-    : window.location.origin;
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL
+  : import.meta.env.MODE === "development"
+    ? "http://localhost:5001"
+    : "/";
 
-export const useAuthStore = create((set,get)=>({
+export const useAuthStore = create((set, get) => ({
     authUser: null,
- 
     isSigningUp: false,
     isLoggingIn: false,
     isUpdatingProfile: false,
     onlineUsers: [],
     isCheckingAuth: true,
-    socket:null,
+    socket: null,
 
-    checkAuth: async ()=>{
+    checkAuth: async () => {
         try {
             const res = await axiosInstance.get('/auth/check');
-            set({authUser:res.data})
-            get().connectSocket()
+            const user = res.data?.data || res.data?.user || res.data;
+            set({ authUser: user });
+            get().connectSocket();
         } catch (error) {
-            console.log("Error in checkAuth: ",error)
-            set({authUser:null})
+            console.log("Error in checkAuth: ", error);
+            set({ authUser: null });
+        } finally {
+            set({ isCheckingAuth: false });
         }
-        finally{
-            set({isCheckingAuth:false})
-        }
-    } ,
+    },
 
     signup: async (data) => {
-        set({isSigningUp:true});
-         try {
+        set({ isSigningUp: true });
+        try {
             const res = await axiosInstance.post('/auth/signup', data);
-            set({authUser:res.data})
-            toast.success("Account Created Successfully")
-            get().connectSocket()
-         } catch (error) {
-            toast.error(error.response.data.message)
-         }
-         finally{
-            set({isSigningUp:false})
-         }
-    } ,
+            const user = res.data?.data || res.data?.user || res.data;
+            set({ authUser: user });
+            toast.success("Account Created Successfully");
+            get().connectSocket();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to create account");
+        } finally {
+            set({ isSigningUp: false });
+        }
+    },
 
-    login : async (data) =>{
-        set({isLoggingIn:true})
+    login: async (data) => {
+        set({ isLoggingIn: true });
         try {
             const res = await axiosInstance.post('/auth/login', data);
-            set({authUser:res.data})
-            toast.success("Logged In Successfully")
-
-            get().connectSocket()
+            const user = res.data?.data || res.data?.user || res.data;
+            set({ authUser: user });
+            toast.success("Logged In Successfully");
+            get().connectSocket();
         } catch (error) {
-            toast.error(error.response.data.message)
+            toast.error(error.response?.data?.message || "Login failed");
+        } finally {
+            set({ isLoggingIn: false });
         }
-        finally{
-            set({isLoggingIn:false})
-        }
-    } ,
+    },
 
-    logout: async () =>{
+    logout: async () => {
         try {
             await axiosInstance.post('/auth/logout');
-            set({authUser:null});
+            get().disconnectSocket();
+            set({ authUser: null, onlineUsers: [] });
             toast.success("Logged Out Successfully");
-            get().disconnectSocket()
         } catch (error) {
-            toast.error(error.response.data.message)
+            toast.error(error.response?.data?.message || "Logout failed");
         }
-    } ,
+    },
 
-    updateProfile: async (data)=>{
-        set({isUpdatingProfile:true})
-        
+    updateProfile: async (data) => {
+        set({ isUpdatingProfile: true });
         try {
-            const res = await axiosInstance.put('/auth/update-profile',data)
-            set({authUser:res.data})
-            toast.success("Profile Image Updated Successfully")
+            const res = await axiosInstance.put('/auth/update-profile', data);
+            const user = res.data?.data || res.data?.user || res.data;
+            set({ authUser: user });
+            toast.success("Profile Image Updated Successfully");
         } catch (error) {
-            console.log("Error in updateProfile: ",error)
-            toast.error(error.response.data.message)
+            console.log("Error in updateProfile: ", error);
+            toast.error(error.response?.data?.message || "Failed to update profile");
+        } finally {
+            set({ isUpdatingProfile: false });
         }
-        finally{
-            set({isUpdatingProfile:false})
-        }
-    }, 
+    },
 
-    connectSocket: ()=>{
-        const {authUser} = get()
-        if(!authUser || get().socket?.connected) return;
-        const socket = io(BASE_URL,{
-            query:{
-                userId:authUser._id
+    connectSocket: () => {
+        const { authUser, socket } = get();
+        const userId = authUser?._id;
+        if (!userId) return;
+        if (socket?.connected) return;
+
+        // Disconnect any existing stale socket
+        if (socket) {
+            socket.disconnect();
+        }
+
+        const newSocket = io(BASE_URL, {
+            query: {
+                userId: userId.toString(),
             },
-            withCredentials: true
-        })
-        socket.connect()
+            withCredentials: true,
+        });
 
-        set({socket:socket})
+        newSocket.connect();
+        set({ socket: newSocket });
 
-        socket.on("getOnlineUsers", (userIds) => {
+        newSocket.on("getOnlineUsers", (userIds) => {
             set({ onlineUsers: userIds });
         });
     },
 
-    disconnectSocket: ()=>{
-        if(get().socket?.connected ) get().socket.disconnect();
+    disconnectSocket: () => {
+        const socket = get().socket;
+        if (socket) {
+            socket.disconnect();
+            set({ socket: null, onlineUsers: [] });
+        }
     }
-    
 }))
