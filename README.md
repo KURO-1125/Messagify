@@ -3,7 +3,6 @@
 A lightweight, real-time messaging platform built with React 19, Node.js, and Socket.IO.
 
 https://github.com/user-attachments/assets/4a07d122-ee96-40c7-9751-37d0431e6ab0
-
 ---
 
 ## Features

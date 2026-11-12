@@ -1,2 +1,0 @@
-Built Messagify: a modern real-time chat app with live voice notes, group channels, emoji reactions, and 32 instant themes. Zero latency, clean DaisyUI styling, and full-stack MERN with Socket.IO.
-
